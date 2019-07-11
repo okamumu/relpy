@@ -1,0 +1,6 @@
+[submodule "relpy/marlib"]
+	path = relpy/marlib
+	url = https://github.com/okamumu/marlib.git
+[submodule "relpy/pybind11"]
+	path = relpy/pybind11
+	url = https://github.com/pybind/pybind11.git

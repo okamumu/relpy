@@ -1,10 +1,9 @@
-# Generated from SHARPE.g4 by ANTLR 4.7.2
+# Generated from relpy/sharpe/SHARPE.g4 by ANTLR 4.7.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
 from typing.io import TextIO
 import sys
-
 
 def serializedATN():
     with StringIO() as buf:
@@ -244,7 +243,6 @@ class SHARPEParser ( Parser ):
 
 
 
-
     class ProgContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -310,7 +308,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class StatementContext(ParserRuleContext):
 
@@ -389,7 +386,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class BindStatementContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -438,7 +434,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class BindDeclerationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -483,7 +478,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class BindBlockContext(ParserRuleContext):
 
@@ -573,7 +567,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class MarkovBlockContext(ParserRuleContext):
 
@@ -679,7 +672,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class MarkovBlockDeclerationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -726,7 +718,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class MarkovRewardBlockContext(ParserRuleContext):
 
@@ -814,7 +805,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class MarkovInitBlockContext(ParserRuleContext):
 
@@ -905,7 +895,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class MarkovTransDecrelationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -956,7 +945,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class MarkovRwdStateDecrelationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1002,7 +990,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class MarkovInitStateDecrelationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1047,7 +1034,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class FtreeBlockContext(ParserRuleContext):
 
@@ -1137,7 +1123,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class FtreeBlockDeclerationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1184,7 +1169,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class FtreeStatementContext(ParserRuleContext):
 
@@ -1270,7 +1254,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class FtreeRepeatDecrelationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1318,7 +1301,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class FtreeBasicDecrelationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1365,7 +1347,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class FtreeAndDecrelationContext(ParserRuleContext):
 
@@ -1424,7 +1405,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class FtreeOrDecrelationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1481,7 +1461,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class FtreeKofNDecrelationContext(ParserRuleContext):
 
@@ -1554,7 +1533,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class ExprContext(ParserRuleContext):
 
@@ -1713,7 +1691,6 @@ class SHARPEParser ( Parser ):
             self.unrollRecursionContexts(_parentctx)
         return localctx
 
-
     class Function_exprContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1801,7 +1778,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Exp_functionContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1847,7 +1823,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class Markovprob_functionContext(ParserRuleContext):
 
@@ -1901,7 +1876,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Ftprob_functionContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1948,7 +1922,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Ftsysprob_functionContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -1994,7 +1967,6 @@ class SHARPEParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Markovexrss_functionContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2039,7 +2011,6 @@ class SHARPEParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
 
     class Literal_exprContext(ParserRuleContext):
 

@@ -4,8 +4,9 @@ USER root
 RUN apt-get -y update &&\
         apt-get install -y \
             libc-bin \
-            libopenblas-base
+            libopenblas-base \
+            antlr4
 
 USER jovyan
 RUN conda install -c anaconda openblas
-RUN pip install z3-solver pybind11
+RUN pip install z3-solver pybind11 antlr4-python3-runtime

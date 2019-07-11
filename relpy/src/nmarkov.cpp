@@ -14,6 +14,16 @@ namespace nmarkov {
   }
 
   template <typename T1, typename MatT>
+  dpyarray ctmc_st_power(const T1& Q, const dpyarray& x0, Params& params) {
+    const int n = marlib::nrow(Q, MatT());
+    T1 P = clone(Q, MatT());
+    dpyarray x(n);
+    marlib::dcopy(x0, x);
+    marlib::ctmc_st_power(P, x, params, [](Params){}, MatT());
+    return x;
+  }
+
+  template <typename T1, typename MatT>
   dpyarray ctmc_st_gs(const T1& Q, const dpyarray& x0, Params& params) {
     const int n = marlib::nrow(Q, MatT());
     dpyarray x(n);
@@ -126,6 +136,27 @@ PYBIND11_MODULE(nmarkov, m) {
     },
     py::arg("Q"),
     "Compute the steady-state vector with GTH");
+
+  m.def("ctmc_st_power_dense",
+    nmarkov::ctmc_st_power<dpyarray,marlib::DenseMatrixT>,
+    py::arg("Q"), py::arg("x0"), py::arg("params"),
+    "Compute the steady-state vector with GTH");
+
+  m.def("ctmc_st_power_sparse",
+    [](const py::object& Q, const dpyarray& x0, marlib::marlib_params& params) {
+      std::string mattype = py::reinterpret_borrow<py::str>(Q.attr("format"));
+      if (mattype == "csr") {
+        return nmarkov::ctmc_st_power<py::object,marlib::CSRMatrixT>(Q, x0, params);
+      } else if (mattype == "csc") {
+        return nmarkov::ctmc_st_power<py::object,marlib::CSCMatrixT>(Q, x0, params);
+      } else if (mattype == "coo") {
+        return nmarkov::ctmc_st_power<py::object,marlib::COOMatrixT>(Q, x0, params);
+      } else {
+        throw std::runtime_error("Q is either csr, csc and coo.");
+      }
+    },
+    py::arg("Q"), py::arg("x0"), py::arg("params"),
+    "Compute the steady-state vector with GS");
 
   m.def("ctmc_st_gs_dense",
     nmarkov::ctmc_st_gs<dpyarray,marlib::DenseMatrixT>,

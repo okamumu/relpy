@@ -19,7 +19,7 @@ Copy the URL at the last of logs of run.sh like
 http://(aea84267f94b or 127.0.0.1):8888/?token=8fe139193454d65875a8ed95c7bedad45860f85a92b3aa78
 ```
 
-Access the URL with Jupyter by replacing `(aea... or 127.0.0.1)` to `localhost`
+Access the URL with Chrome etc. by replacing `(aea... or 127.0.0.1)` to `localhost`
 
 ### Compile nmarkov
 

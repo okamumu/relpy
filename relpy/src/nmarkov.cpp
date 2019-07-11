@@ -1,4 +1,4 @@
-#include <nmarkov.h>
+#include "nmarkov.h"
 #include <tuple>
 
 namespace nmarkov {

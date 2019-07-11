@@ -1,18 +1,25 @@
-import ipdb
+import io
 import sys
+import re
 from antlr4 import *
-from QueryLexer import QueryLexer
-from QueryParser import QueryParser
-from MyQueryListener import MyQueryListener
+from SHARPELexer import SHARPELexer
+from SHARPEParser import SHARPEParser
+from Listener import Listener
 
 def main(argv):
     print('read ' + argv[1])
-    input = FileStream(argv[1])
-    lexer = QueryLexer(input)
+    f = open(argv[1], 'r')
+    data = io.StringIO()
+    for line in f:
+        if not re.match(r"^\s*\*", line):
+            data.write(line)
+    f.close()
+    
+    input = InputStream(data.getvalue())
+    lexer = SHARPELexer(input)
     stream = CommonTokenStream(lexer)
-    parser = QueryParser(stream)
-    listener = MyQueryListener()
-#    ipdb.set_trace()
+    parser = SHARPEParser(stream)
+    listener = Listener()
     parser.addParseListener(listener)
     parser.prog()
 

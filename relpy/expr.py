@@ -79,6 +79,9 @@ class Const(Expr):
   def __str__(self):
     return str(self.value)
 
+  def eval(self):
+    return self.value
+
   def eval(self, env):
     return self.value
 

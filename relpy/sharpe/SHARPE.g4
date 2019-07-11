@@ -15,8 +15,9 @@ bindStatement
     : ('bind'|'BIND') bindDecleration
     ;
 
-bindDecleration
-    : ID expr
+bindDecleration returns [int type]
+    : ID literal_expr {$type = 1;}
+    | ID expr {$type = 2;}
     ;
 
 bindBlock

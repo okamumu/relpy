@@ -1,9 +1,6 @@
 # Generated from relpy/sharpe/SHARPE.g4 by ANTLR 4.7.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
-    from .SHARPEParser import SHARPEParser
-else:
-    from SHARPEParser import SHARPEParser
+from .SHARPEParser import SHARPEParser
 
 # This class defines a complete listener for a parse tree produced by SHARPEParser.
 class SHARPEListener(ParseTreeListener):

@@ -1,16 +1,18 @@
 import io
+import sys
 from antlr4 import *
-if __name__ is not None and "." in __name__:
-    from .SHARPEParser import SHARPEParser
-else:
-    from SHARPEParser import SHARPEParser
-from SHARPEListener import SHARPEListener
 from collections import deque
+from .SHARPEParser import SHARPEParser
+from .SHARPEListener import SHARPEListener
+
+class ParserException(Exception):
+    pass
 
 class Listener(SHARPEListener):
     def __init__(self):
         self.stack = deque([])
         self.f = io.StringIO()
+        self.error = False
 
     def push(self, x):
         self.stack.append(x)
@@ -19,17 +21,19 @@ class Listener(SHARPEListener):
         x = self.stack.pop()
         return x
 
+    def getvalue(self):
+        return self.f.getvalue()
+
     def enterProg(self, ctx:SHARPEParser.ProgContext):
+        self.f.write('import relpy\n')
+        self.f.write('env = {}\n')
         pass
 
     def exitProg(self, ctx:SHARPEParser.ProgContext):
-        print(self.f.getvalue())
-        pass
-
+        if ctx.exception != None:
+            raise ParserException
+    
     def exitBindDecleration(self, ctx:SHARPEParser.BindDeclerationContext):
-        # label = ctx.children[0].getText()
-        # x = self.pop()
-        # self.f.write('{} = {}\n'.format(label, x))
         if ctx.type == 1: # literal
             label = ctx.children[0].getText()
             data = ctx.children[1].getText()
@@ -67,6 +71,7 @@ class Listener(SHARPEListener):
         pass
 
     def exitFtreeBlock(self, ctx:SHARPEParser.FtreeBlockContext):
+        self.f.write('{} = {}\n'.format(self.ft, self.fttop))
         pass
 
     def exitFtreeBlockDecleration(self, ctx:SHARPEParser.FtreeBlockDeclerationContext):
@@ -77,28 +82,33 @@ class Listener(SHARPEListener):
         x = ctx.children[1].getText()
         expr = self.pop()
         self.f.write('{} = relpy.FTEvent({})\n'.format(x, expr))
+        self.fttop = x
 
     def exitFtreeBasicDecrelation(self, ctx:SHARPEParser.FtreeBasicDecrelationContext):
         x = ctx.children[1].getText()
         expr = self.pop()
         self.f.write('{} = relpy.FTEvent({})\n'.format(x, expr))
+        self.fttop = x
 
     def exitFtreeAndDecrelation(self, ctx:SHARPEParser.FtreeAndDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
         self.f.write('{} = {}\n'.format(x, '&'.join(node)))
+        self.fttop = x
 
     def exitFtreeOrDecrelation(self, ctx:SHARPEParser.FtreeOrDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
         self.f.write('{} = {}\n'.format(x, '|'.join(node)))
+        self.fttop = x
 
     def exitFtreeKofNDecrelation(self, ctx:SHARPEParser.FtreeKofNDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(6,len(ctx.children))]
         n = self.pop()
         k = self.pop()
-        self.f.write('{} = relpy.FTKofn({}.eval(), {}.eval(), [{}])\n'.format(x, k, n, ','.join(node)))
+        self.f.write('{} = relpy.FTKofn({}.eval(env), {}.eval(env), [{}])\n'.format(x, k, n, ','.join(node)))
+        self.fttop = x
 
     def exitExpr(self, ctx:SHARPEParser.ExprContext):
         if ctx.type == 1:

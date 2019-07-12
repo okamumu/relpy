@@ -74,7 +74,7 @@ class CTMC(Parameterizable):
     r = self.init.deriv2(env, p1, p2, states=self.states)
     return r
 
-class CTMCStProb(FaultTree):
+class CTMCStProb(Expr):
   def __init__(self, markov, states):
     super().__init__()
     self.set_paramset(markov.Q.get_paramset())

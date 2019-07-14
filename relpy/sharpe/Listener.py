@@ -13,6 +13,8 @@ class Listener(SHARPEListener):
         self.stack = deque([])
         self.f = io.StringIO()
         self.error = False
+        self.bindent = '     '
+        self.params = set()
 
     def push(self, x):
         self.stack.append(x)
@@ -27,6 +29,7 @@ class Listener(SHARPEListener):
     def enterProg(self, ctx:SHARPEParser.ProgContext):
         self.f.write('import relpy\n')
         self.f.write('env = {}\n')
+        self.f.write('cache = {}\n')
         pass
 
     def exitProg(self, ctx:SHARPEParser.ProgContext):
@@ -45,61 +48,80 @@ class Listener(SHARPEListener):
             self.f.write('{} = {}\n'.format(label, x))
 
     def exitMarkovBlock(self, ctx:SHARPEParser.MarkovBlockContext):
+        self.f.write('class ctmc_{}(relpy.CTMC):\n'.format(self.ctmc))
+        self.f.write(self.bindent + 'def __init__({}):\n'.format(','.join(self.params)))
+        self.f.write(self.markovmodel.getvalue())
+        self.f.write('\n')
         pass
 
     def exitMarkovBlockDecleration(self, ctx:SHARPEParser.MarkovBlockDeclerationContext):
+        self.markovmodel = io.StringIO()
         self.ctmc = ctx.children[1].getText()
-        self.f.write('{} = relpy.CTMC("{}")\n'.format(self.ctmc, self.ctmc))
+        self.params = set()
+#        self.f.write('{} = relpy.CTMC("{}")\n'.format(self.ctmc, self.ctmc))
 
     def exitMarkovTransDecrelation(self, ctx:SHARPEParser.MarkovTransDecrelationContext):
         s = ctx.children[0].getText()
         d = ctx.children[1].getText()
         expr = self.pop()
-        self.f.write('{}.add_trans("{}", "{}", {})\n'.format(self.ctmc, s, d, expr))
+        self.markovmodel.write(self.bindent + self.bindent + 'self.add_trans("{}", "{}", {})\n'.format(s, d, expr))
 
     def exitMarkovRwdStateDecrelation(self, ctx:SHARPEParser.MarkovRwdStateDecrelationContext):
         s = ctx.children[0].getText()
         expr = self.pop()
-        self.f.write('{}.add_reward("{}", {})\n'.format(self.ctmc, s, expr))
+        self.markovmodel.write(self.bindent + self.bindent + 'self.add_reward("{}", {})\n'.format(s, expr))
 
     def exitMarkovInitStateDecrelation(self, ctx:SHARPEParser.MarkovInitStateDecrelationContext):
         s = ctx.children[0].getText()
         expr = self.pop()
-        self.f.write('{}.add_init("{}", {})\n'.format(self.ctmc, s, expr))
+        self.markovmodel.write(self.bindent + self.bindent + 'self.add_init("{}", {})\n'.format(s, expr))
 
     def enterFtreeBlock(self, ctx:SHARPEParser.FtreeBlockContext):
         pass
 
     def exitFtreeBlock(self, ctx:SHARPEParser.FtreeBlockContext):
-        self.f.write('{} = {}\n'.format(self.ft, self.fttop))
+        self.f.write('class ftree_{}(relpy.FaultTree):\n'.format(self.ft))
+        self.f.write(self.bindent + 'def __init__({}):\n'.format(','.join(self.params)))
+        self.f.write(self.ftreemodel.getvalue())
+        self.f.write('\n')
+        self.f.write(self.bindent + 'def eval(self, env):\n')
+        self.f.write(self.bindent + self.bindent + 'return {ft}.eval(env)\n'.format(ft=self.fttop))
+        self.f.write('\n')
+        self.f.write(self.bindent + 'def deriv(self, env, p):\n')
+        self.f.write(self.bindent + self.bindent + 'return {ft}.deriv(env, p)\n'.format(ft=self.fttop))
+        self.f.write('\n')
+        self.f.write(self.bindent + 'def deriv2(self, env, p1, p2):\n')
+        self.f.write(self.bindent + self.bindent + 'return {ft}.deriv2(env, p1, p2)\n'.format(ft=self.fttop))
+        self.f.write('\n')
         pass
 
     def exitFtreeBlockDecleration(self, ctx:SHARPEParser.FtreeBlockDeclerationContext):
-        x = ctx.children[1].getText()
-        self.ft = x
+        self.ftreemodel = io.StringIO()
+        self.ft = ctx.children[1].getText()
+        self.params = set()
 
     def exitFtreeRepeatDecrelation(self, ctx:SHARPEParser.FtreeRepeatDecrelationContext):
         x = ctx.children[1].getText()
         expr = self.pop()
-        self.f.write('{} = relpy.FTEvent({})\n'.format(x, expr))
+        self.ftreemodel.write(self.bindent + self.bindent + '{} = relpy.FTEvent({})\n'.format(x, expr))
         self.fttop = x
 
     def exitFtreeBasicDecrelation(self, ctx:SHARPEParser.FtreeBasicDecrelationContext):
         x = ctx.children[1].getText()
         expr = self.pop()
-        self.f.write('{} = relpy.FTEvent({})\n'.format(x, expr))
+        self.ftreemodel.write(self.bindent + self.bindent + '{} = relpy.FTEvent({})\n'.format(x, expr))
         self.fttop = x
 
     def exitFtreeAndDecrelation(self, ctx:SHARPEParser.FtreeAndDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
-        self.f.write('{} = {}\n'.format(x, '&'.join(node)))
+        self.ftreemodel.write(self.bindent + self.bindent + '{} = {}\n'.format(x, '&'.join(node)))
         self.fttop = x
 
     def exitFtreeOrDecrelation(self, ctx:SHARPEParser.FtreeOrDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
-        self.f.write('{} = {}\n'.format(x, '|'.join(node)))
+        self.ftreemodel.write(self.bindent + self.bindent + '{} = {}\n'.format(x, '|'.join(node)))
         self.fttop = x
 
     def exitFtreeKofNDecrelation(self, ctx:SHARPEParser.FtreeKofNDecrelationContext):
@@ -107,7 +129,7 @@ class Listener(SHARPEListener):
         node = [ ctx.children[i].getText() for i in range(6,len(ctx.children))]
         n = self.pop()
         k = self.pop()
-        self.f.write('{} = relpy.FTKofn({}.eval(env), {}.eval(env), [{}])\n'.format(x, k, n, ','.join(node)))
+        self.ftreemodel.write(self.bindent + self.bindent + '{} = relpy.FTKofn({}.eval(env,cache), {}.eval(env,cache), [{}])\n'.format(x, k, n, ','.join(node)))
         self.fttop = x
 
     def exitExpr(self, ctx:SHARPEParser.ExprContext):
@@ -141,6 +163,7 @@ class Listener(SHARPEListener):
             pass
         elif ctx.type == 6: # id
             self.push('{}'.format(ctx.children[0].getText()))
+            self.params.add(ctx.children[0].getText())
             pass
         elif ctx.type == 7: # pa
             pass
@@ -155,10 +178,12 @@ class Listener(SHARPEListener):
         x = ctx.children[2]
         y = ctx.children[4]
         self.push('relpy.CTMCStProb({},["{}"])'.format(x,y))
+        # self.params.add(x)
 
     def exitMarkovexrss_function(self, ctx:SHARPEParser.Markovexrss_functionContext):
         x = ctx.children[2]
         self.push('relpy.CTMCExrss({})'.format(x))
+        # self.params.add(x)
 
     def exitFtprob_function(self, ctx:SHARPEParser.Ftprob_functionContext):
         pass
@@ -166,3 +191,4 @@ class Listener(SHARPEListener):
     def exitFtsysprob_function(self, ctx:SHARPEParser.Ftsysprob_functionContext):
         x = ctx.children[2]
         self.push(x)
+        # self.params.add(x)

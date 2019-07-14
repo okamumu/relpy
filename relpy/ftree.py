@@ -29,20 +29,20 @@ class FTEvent(FaultTree):
   def __str__(self):
     return '{}'.format(self.value)
 
-  def eval(self, env):
-    x = self.value.eval(env)
+  def eval(self, env, cache):
+    x = self.value.eval(env, cache)
     return x
 
-  def deriv(self, env, p):
+  def deriv(self, env, p, cache):
     if self.has_param(p):
-      dx = self.value.deriv(env, p)
+      dx = self.value.deriv(env, p, cache)
       return dx
     else:
      return 0
 
-  def deriv2(self, env, p1, p2):
+  def deriv2(self, env, p1, p2, cache):
     if self.has_param(p1) and self.has_param(p2):
-      dx12 = self.value.deriv2(env, p1, p2)
+      dx12 = self.value.deriv2(env, p1, p2, cache)
       return dx12
     else:
      return 0
@@ -59,21 +59,33 @@ class FTNotGate(FaultTree):
   def __str__(self):
     return '~{}'.format(self.value)
 
-  def eval(self, env):
-    x = self.value.eval(env)
-    return 1 - x
+  def eval(self, env, cache):
+    if self in cache:
+      return cache[self]
+    x = self.value.eval(env, cache)
+    value = 1 - x
+    cache[self] = value
+    return value
 
-  def deriv(self, env, p):
+  def deriv(self, env, p, cache):
+    if (self,p) in cache:
+      return cache[(self,p)]
     if self.has_param(p):
-      dx = self.value.deriv(env, p)
-      return -dx
+      dx = self.value.deriv(env, p, cache)
+      value = -dx
+      cache[(self,p)] = value
+      return value
     else:
      return 0
 
-  def deriv2(self, env, p1, p2):
+  def deriv2(self, env, p1, p2, cache):
+    if (self,p1,p2) in cache:
+      return cache[(self,p1,p2)]
     if self.has_param(p1) and self.has_param(p2):
-      dx12 = self.value.deriv2(env, p1, p2)
-      return -dx12
+      dx12 = self.value.deriv2(env, p1, p2, cache)
+      value = -dx12
+      cache[(self,p1,p2)] = value
+      return value
     else:
      return 0
 
@@ -90,32 +102,44 @@ class FTAndGate(FaultTree):
   def __str__(self):
     return '{}&{}'.format(self.left, self.right)
 
-  def eval(self, env):
-    x = self.left.eval(env)
-    y = self.right.eval(env)
-    return x * y
+  def eval(self, env, cache):
+    if self in cache:
+      return cache[self]
+    x = self.left.eval(env, cache)
+    y = self.right.eval(env, cache)
+    value = x * y
+    cache[self] = value
+    return value
 
-  def deriv(self, env, p):
+  def deriv(self, env, p, cache):
+    if (self,p) in cache:
+      return cache[(self,p)]
     if self.has_param(p):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx = self.left.deriv(env, p)
-      dy = self.right.deriv(env, p)
-      return dx*y + x*dy
+      x = self.left.eval(env, cache)
+      y = self.right.eval(env, cache)
+      dx = self.left.deriv(env, p, cache)
+      dy = self.right.deriv(env, p, cache)
+      value = dx*y + x*dy
+      cache[(self,p)] = value
+      return value
     else:
      return 0
 
-  def deriv2(self, env, p1, p2):
+  def deriv2(self, env, p1, p2, cache):
+    if (self,p1,p2) in cache:
+      return cache[(self,p1,p2)]
     if self.has_param(p1) and self.has_param(p2):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx1 = self.left.deriv(env, p1)
-      dx2 = self.left.deriv(env, p2)
-      dy1 = self.right.deriv(env, p1)
-      dy2 = self.right.deriv(env, p2)
-      dx12 = self.left.deriv2(env, p1, p2)
-      dy12 = self.right.deriv2(env, p1, p2)
-      return dx12*y + dx1*dy2 + dx2*dy1 + x*dy12
+      x = self.left.eval(env, cache)
+      y = self.right.eval(env, cache)
+      dx1 = self.left.deriv(env, p1, cache)
+      dx2 = self.left.deriv(env, p2, cache)
+      dy1 = self.right.deriv(env, p1, cache)
+      dy2 = self.right.deriv(env, p2, cache)
+      dx12 = self.left.deriv2(env, p1, p2, cache)
+      dy12 = self.right.deriv2(env, p1, p2, cache)
+      value = dx12*y + dx1*dy2 + dx2*dy1 + x*dy12
+      cache[(self,p1,p2)] = value
+      return value
     else:
      return 0
 
@@ -132,32 +156,44 @@ class FTOrGate(FaultTree):
   def __str__(self):
     return '({}|{})'.format(self.left, self.right)
 
-  def eval(self, env):
-    x = self.left.eval(env)
-    y = self.right.eval(env)
-    return 1 - (1-x) * (1-y)
+  def eval(self, env, cache):
+    if self in cache:
+      return cache[self]
+    x = self.left.eval(env, cache)
+    y = self.right.eval(env, cache)
+    value = 1 - (1-x) * (1-y)
+    cache[self] = value
+    return value
 
-  def deriv(self, env, p):
+  def deriv(self, env, p, cache):
+    if (self,p) in cache:
+      return cache[(self,p)]
     if self.has_param(p):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx = self.left.deriv(env, p)
-      dy = self.right.deriv(env, p)
-      return dx * (1-y) + (1-x) * dy
+      x = self.left.eval(env, cache)
+      y = self.right.eval(env, cache)
+      dx = self.left.deriv(env, p, cache)
+      dy = self.right.deriv(env, p, cache)
+      value = dx * (1-y) + (1-x) * dy
+      cache[(self,p)] = value
+      return value
     else:
      return 0
 
-  def deriv2(self, env, p1, p2):
+  def deriv2(self, env, p1, p2, cache):
+    if (self,p1,p2) in cache:
+      return cache[(self,p1,p2)]
     if self.has_param(p1) and self.has_param(p2):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx1 = self.left.deriv(env, p1)
-      dx2 = self.left.deriv(env, p2)
-      dy1 = self.right.deriv(env, p1)
-      dy2 = self.right.deriv(env, p2)
-      dx12 = self.left.deriv2(env, p1, p2)
-      dy12 = self.right.deriv2(env, p1, p2)
-      return dx12 * (1-y) - dx1 * dy2 - dx2 * dy1 + (1-y) * dy12
+      x = self.left.eval(env, cache)
+      y = self.right.eval(env, cache)
+      dx1 = self.left.deriv(env, p1, cache)
+      dx2 = self.left.deriv(env, p2, cache)
+      dy1 = self.right.deriv(env, p1, cache)
+      dy2 = self.right.deriv(env, p2, cache)
+      dx12 = self.left.deriv2(env, p1, p2, cache)
+      dy12 = self.right.deriv2(env, p1, p2, cache)
+      value = dx12 * (1-y) - dx1 * dy2 - dx2 * dy1 + (1-y) * dy12
+      cache[(self,p1,p2)] = value
+      return value
     else:
      return 0
 
@@ -187,21 +223,33 @@ class FTKofn(FaultTree):
   def __str__(self):
     return 'KofN({},{}){}'.format(self.k, self.n, self.nodes)
 
-  def eval(self, env):
-    x = self.formula.eval(env)
-    return x
+  def eval(self, env, cache):
+    if self in cache:
+      return cache[self]
+    x = self.formula.eval(env, cache)
+    value = x
+    cache[self] = value
+    return value
 
-  def deriv(self, env, p):
+  def deriv(self, env, p, cache):
+    if (self,p) in cache:
+      return cache[(self,p)]
     if self.has_param(p):
-      dx = self.formula.deriv(env, p)
-      return dx
+      dx = self.formula.deriv(env, p, cache)
+      value = dx
+      cache[(self,p)] = value
+      return value
     else:
      return 0
 
-  def deriv2(self, env, p1, p2):
+  def deriv2(self, env, p1, p2, cache):
+    if (self,p1,p2) in cache:
+      return cache[(self,p1,p2)]
     if self.has_param(p1) and self.has_param(p2):
-      dx12 = self.formula.deriv2(env, p1, p2)
-      return dx12
+      dx12 = self.formula.deriv2(env, p1, p2, cache)
+      value = dx12
+      cache[(self,p1,p2)] = value
+      return value
     else:
      return 0
 

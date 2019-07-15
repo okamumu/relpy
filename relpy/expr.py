@@ -68,6 +68,8 @@ class Parameter(Expr):
   def deriv2(self, env, p1, p2, cache):
       return 0
 
+_time = Parameter('time')
+
 class Const(Expr):
   def __init__(self, value):
     super().__init__()
@@ -325,7 +327,7 @@ class Exp(Expr):
   def __init__(self, exponent):
     super().__init__()
     self.union_paramset([exponent])
-    self.exponent = exponent
+    self.exponent = -exponent * _time
 
   def __repr__(self):
     return 'exp({})'.format(self.exponent)
@@ -346,7 +348,7 @@ class Exp(Expr):
       return cache[(self,p)]
     if self.has_param(p):
       x = self.exponent.eval(env, cache)
-      dx = self.exponent.eval(env, cache)
+      dx = self.exponent.deriv(env, p, cache)
       value = math.exp(x)*dx
       cache[(self,p)] = value
       return value

@@ -24,6 +24,14 @@ class Parameterizable:
     env[tparam] = t
     return self.eval(env)
 
+  def tderiv(self, tparam, t, env, p):
+    env[tparam] = t
+    return self.deriv(env, p)
+
+  def tderiv2(self, tparam, t, env, p1, p2):
+    env[tparam] = t
+    return self.deriv2(env, p1, p2)
+
 class Expr(Parameterizable):
   def __init__(self):
     super().__init__()

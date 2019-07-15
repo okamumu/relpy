@@ -29,8 +29,7 @@ class Listener(SHARPEListener):
 
     def enterProg(self, ctx:SHARPEParser.ProgContext):
         self.f.write('import relpy\n')
-        self.env.write('env = {}\n')
-        self.f.write('cache = {}\n')
+        self.f.write('env = relpy.Env()\n')
         pass
 
     def exitProg(self, ctx:SHARPEParser.ProgContext):
@@ -49,7 +48,6 @@ class Listener(SHARPEListener):
         elif ctx.type == 2: # expr
             label = ctx.children[0].getText()
             x = self.pop()
-#            self.f.write('{} = {}\n'.format(label, x))
             self.f.write('def {}({}):\n'.format(label, ','.join(self.params)))
             self.f.write(self.bindent + 'return {}\n'.format(x))
             self.f.write('\n')
@@ -114,6 +112,20 @@ class Listener(SHARPEListener):
         self.ftreemodel.write(self.bindent + '{} = relpy.FTEvent({})\n'.format(x, expr))
         self.fttop = x
 
+    def exitExpDistribution(self, ctx:SHARPEParser.ExpDistributionContext):
+        x = self.pop()
+        self.push('relpy.ExpDist({}, _time)'.format(x))
+        self.params.add('_time')
+
+    def exitProbDistribution(self, ctx:SHARPEParser.ProbDistributionContext):
+        x = ctx.children[2].getText()
+        pass
+
+    def exitCdfDistribution(self, ctx:SHARPEParser.CdfDistributionContext):
+        x = ctx.children[2].getText()
+        self.push(x)
+        self.params.add(x)
+
     def exitFtreeAndDecrelation(self, ctx:SHARPEParser.FtreeAndDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
@@ -131,7 +143,7 @@ class Listener(SHARPEListener):
         node = [ ctx.children[i].getText() for i in range(6,len(ctx.children))]
         n = self.pop()
         k = self.pop()
-        self.ftreemodel.write(self.bindent + '{} = relpy.FTKofn({}.eval(env,cache), {}.eval(env,cache), [{}])\n'.format(x, k, n, ','.join(node)))
+        self.ftreemodel.write(self.bindent + '{} = relpy.FTKofn({}.eval(env), {}.eval(env), [{}])\n'.format(x, k, n, ','.join(node)))
         self.fttop = x
 
     def exitExpr(self, ctx:SHARPEParser.ExprContext):
@@ -175,23 +187,18 @@ class Listener(SHARPEListener):
     def exitExp_function(self, ctx:SHARPEParser.Exp_functionContext):
         x = str(self.pop())
         self.push('relpy.exp({})'.format(x))
-        self.params.add(x)
 
     def exitMarkovprob_function(self, ctx:SHARPEParser.Markovprob_functionContext):
-        x = str(ctx.children[2])
-        y = str(ctx.children[4])
+        x = ctx.children[2].getText()
+        y = ctx.children[4].getText()
         self.push('relpy.CTMCStProb({},["{}"])'.format(x,y))
         self.params.add(x)
 
     def exitMarkovexrss_function(self, ctx:SHARPEParser.Markovexrss_functionContext):
-        x = str(ctx.children[2])
+        x = ctx.children[2].getText()
         self.push('relpy.CTMCExrss({})'.format(x))
         self.params.add(x)
 
-    def exitFtprob_function(self, ctx:SHARPEParser.Ftprob_functionContext):
-        pass
-
     def exitFtsysprob_function(self, ctx:SHARPEParser.Ftsysprob_functionContext):
-        x = str(ctx.children[2])
+        x = ctx.children[2].getText()
         self.push(x)
-        self.params.add(x)

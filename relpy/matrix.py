@@ -19,34 +19,34 @@ class Vector(Parameterizable):
     self.states.add(i)
     self.elem[i] = expr
 
-  def eval(self, env, cache, states = None):
+  def eval(self, env, states = None):
     if states == None:
       states = self.states
     n = len(states)
     s = dict(zip(sorted(states), range(n)))
     x = numpy.zeros(n)
     for k,v in self.elem.items():
-      x[s[k]] = v.eval(env, cache)
+      x[s[k]] = v.eval(env)
     return x, s
 
-  def deriv(self, env, p, cache, states = None):
+  def deriv(self, env, p, states = None):
     if states == None:
       states = self.states
     n = len(states)
     s = dict(zip(sorted(states), range(n)))
     x = numpy.zeros(n)
     for k,v in self.elem.items():
-      x[s[k]] = v.deriv(env, p, cache)
+      x[s[k]] = v.deriv(env, p)
     return x, s
 
-  def deriv2(self, env, p1, p2, cache, states = None):
+  def deriv2(self, env, p1, p2, states = None):
     if states == None:
       states = self.states
     n = len(states)
     s = dict(zip(sorted(states), range(n)))
     x = numpy.zeros(n)
     for k,v in self.elem.items():
-      x[s[k]] = v.deriv2(env, p1, p2, cache)
+      x[s[k]] = v.deriv2(env, p1, p2)
     return x, s
 
 class Matrix(Parameterizable):
@@ -77,7 +77,7 @@ class Matrix(Parameterizable):
     data = numpy.array(datalist, dtype=numpy.float64)
     return scipy.sparse.coo_matrix((data, (row, col)), shape=shape)
 
-  def eval(self, env, cache, row_states = None, col_states = None):
+  def eval(self, env, row_states = None, col_states = None):
     if row_states == None:
       row_states = self.row_states
     if col_states == None:
@@ -88,10 +88,10 @@ class Matrix(Parameterizable):
     sj = dict(zip(sorted(col_states), range(n)))
     rowlist = [si[k[0]] for k in self.elem.keys()]
     collist = [sj[k[1]] for k in self.elem.keys()]
-    datalist = [v.eval(env, cache) for v in self.elem.values()]
+    datalist = [v.eval(env) for v in self.elem.values()]
     return self.make_matrix((m,n), rowlist, collist, datalist), si, sj
 
-  def deriv(self, env, p, cache, row_states = None, col_states = None):
+  def deriv(self, env, p, row_states = None, col_states = None):
     if row_states == None:
       row_states = self.row_states
     if col_states == None:
@@ -102,10 +102,10 @@ class Matrix(Parameterizable):
     sj = dict(zip(sorted(col_states), range(n)))
     rowlist = [si[k[0]] for k in self.elem.keys()]
     collist = [sj[k[1]] for k in self.elem.keys()]
-    datalist = [v.deriv(env, p, cache) for v in self.elem.values()]
+    datalist = [v.deriv(env, p) for v in self.elem.values()]
     return self.make_matrix((m,n), rowlist, collist, datalist), si, sj
 
-  def deriv2(self, env, p1, p2, cache, row_states = None, col_states = None):
+  def deriv2(self, env, p1, p2, row_states = None, col_states = None):
     if row_states == None:
       row_states = self.row_states
     if col_states == None:
@@ -116,7 +116,7 @@ class Matrix(Parameterizable):
     sj = dict(zip(sorted(col_states), range(n)))
     rowlist = [si[k[0]] for k in self.elem.keys()]
     collist = [sj[k[1]] for k in self.elem.keys()]
-    datalist = [v.deriv2(env, p1, p2, cache) for v in self.elem.values()]
+    datalist = [v.deriv2(env, p1, p2) for v in self.elem.values()]
     return self.make_matrix((m,n), rowlist, collist, datalist), si, sj
 
 class CTMCMatrix(Matrix):

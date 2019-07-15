@@ -1,6 +1,9 @@
 # Generated from relpy/sharpe/SHARPE.g4 by ANTLR 4.7.2
 from antlr4 import *
-from .SHARPEParser import SHARPEParser
+if __name__ is not None and "." in __name__:
+    from .SHARPEParser import SHARPEParser
+else:
+    from SHARPEParser import SHARPEParser
 
 # This class defines a complete listener for a parse tree produced by SHARPEParser.
 class SHARPEListener(ParseTreeListener):
@@ -185,6 +188,42 @@ class SHARPEListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by SHARPEParser#probExpr.
+    def enterProbExpr(self, ctx:SHARPEParser.ProbExprContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#probExpr.
+    def exitProbExpr(self, ctx:SHARPEParser.ProbExprContext):
+        pass
+
+
+    # Enter a parse tree produced by SHARPEParser#expDistribution.
+    def enterExpDistribution(self, ctx:SHARPEParser.ExpDistributionContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#expDistribution.
+    def exitExpDistribution(self, ctx:SHARPEParser.ExpDistributionContext):
+        pass
+
+
+    # Enter a parse tree produced by SHARPEParser#probDistribution.
+    def enterProbDistribution(self, ctx:SHARPEParser.ProbDistributionContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#probDistribution.
+    def exitProbDistribution(self, ctx:SHARPEParser.ProbDistributionContext):
+        pass
+
+
+    # Enter a parse tree produced by SHARPEParser#cdfDistribution.
+    def enterCdfDistribution(self, ctx:SHARPEParser.CdfDistributionContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#cdfDistribution.
+    def exitCdfDistribution(self, ctx:SHARPEParser.CdfDistributionContext):
+        pass
+
+
     # Enter a parse tree produced by SHARPEParser#expr.
     def enterExpr(self, ctx:SHARPEParser.ExprContext):
         pass
@@ -218,15 +257,6 @@ class SHARPEListener(ParseTreeListener):
 
     # Exit a parse tree produced by SHARPEParser#markovprob_function.
     def exitMarkovprob_function(self, ctx:SHARPEParser.Markovprob_functionContext):
-        pass
-
-
-    # Enter a parse tree produced by SHARPEParser#ftprob_function.
-    def enterFtprob_function(self, ctx:SHARPEParser.Ftprob_functionContext):
-        pass
-
-    # Exit a parse tree produced by SHARPEParser#ftprob_function.
-    def exitFtprob_function(self, ctx:SHARPEParser.Ftprob_functionContext):
         pass
 
 

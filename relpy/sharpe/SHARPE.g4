@@ -69,11 +69,11 @@ ftreeStatement
     ;
 
 ftreeRepeatDecrelation
-    : 'repeat' ID expr
+    : 'repeat' ID probExpr
     ;
 
 ftreeBasicDecrelation
-    : 'basic' ID expr
+    : 'basic' ID probExpr
     ;
 
 ftreeAndDecrelation
@@ -86,6 +86,24 @@ ftreeOrDecrelation
 
 ftreeKofNDecrelation
     : 'kofn' ID expr ',' expr ',' (ID)+
+    ;
+
+probExpr
+    : expDistribution
+    | probDistribution
+    | cdfDistribution
+    ;
+
+expDistribution
+    : 'exp' '(' expr ')'
+    ;
+
+probDistribution
+    : 'prob' '(' expr ')'
+    ;
+
+cdfDistribution
+    : 'cdf' '(' ID ')'
     ;
 
 expr returns [int type]
@@ -102,7 +120,6 @@ function_expr
     : exp_function
     | markovprob_function
     | markovexrss_function
-    | ftprob_function
     | ftsysprob_function
     ;
 
@@ -112,10 +129,6 @@ exp_function
 
 markovprob_function
     : 'prob' '(' ID ',' ID ')'
-    ;
-
-ftprob_function
-    : 'prob' '(' expr ')'
     ;
 
 ftsysprob_function

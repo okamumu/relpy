@@ -104,7 +104,9 @@ class BDD:
         return self.op['or'].apply(self, f, g)
 
     def Not(self, f):
-        return self.op['not'].apply(self, f)
+        op = self.op['not']
+        cache = self.cache[op]
+        return op.apply(self, f, cache)
     
     def Ite(self, f, g, h):
         return self.op['ite'].apply(self, f, g, h)
@@ -299,24 +301,23 @@ class IteOperator(TriOperator):
             return bdd.createVariable(g.var, low, high)
 
 class UnaryOperator:
-    def apply(self, bdd, f):
-        cache = bdd.cache[self]
+    def apply(self, bdd, f, cache):
         if f in cache:
             return cache[f]
         if f.isValue() == True:
-            result = self.applyT(bdd, f)
+            result = self.applyT(bdd, f, cache)
         else:
-            result = self.applyN(bdd, f)
+            result = self.applyN(bdd, f, cache)
         cache[f] = result
         return result
 
 class NotOperator(UnaryOperator):
-    def applyT(self, bdd, f):
+    def applyT(self, bdd, f, cache):
         return bdd.createValue(not f.value)
     
-    def applyN(self, bdd, f):
-        low = self.apply(bdd, f.low)
-        high = self.apply(bdd, f.high)
+    def applyN(self, bdd, f, cache):
+        low = self.apply(bdd, f.low, cache)
+        high = self.apply(bdd, f.high, cache)
         return bdd.createVariable(f.var, low, high)
         
 class Visitor:
@@ -373,4 +374,3 @@ def createKofNGate(bdd, k, n, x):
         x0 = x[0]
         rx = x[1:]
         return bdd.Ite(x0, createKofNGate(bdd, k-1, n-1, rx), createKofNGate(bdd, k, n-1, rx))
-

@@ -1,7 +1,10 @@
+import relpy.bdd as bdd
+
 class Env:
     def __init__(self, env = {}):
         self.env = env
         self.cache = {}
+        self.bdd = bdd.BDD()
     
     def clear_cache(self):
         self.cache = {}

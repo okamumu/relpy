@@ -349,10 +349,10 @@ class GraphvizVisitor(Visitor):
         return self.str.getvalue()
 
     def visitT(self, bdd, f):
-        self.str.write('"obj{term}" [shape = square, label = "{value}\\n{id}"];\n'.format(term=id(f), value=f.value, id=f))
+        self.str.write('"obj{term}" [shape = square, label = "{value}"];\n'.format(term=id(f), value=f.value))
     
     def visitN(self, bdd, f):
-        self.str.write('"obj{term}" [shape = circle, label = "{value}\\n{id}"];\n'.format(term=id(f), value=f.var, id=f))
+        self.str.write('"obj{term}" [shape = circle, label = "{value}"];\n'.format(term=id(f), value=bdd.index[f.var]))
         self.visit(bdd, f.low)
         self.visit(bdd, f.high)
         self.str.write('"obj{term}" -> "obj{low}" [style = dotted];\n'.format(term=id(f), low=id(f.low)))

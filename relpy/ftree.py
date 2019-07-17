@@ -16,6 +16,9 @@ class FaultTree(Parameterizable):
   
   def __invert__(self):
     return FTNotGate(self)
+  
+  def get(self):
+    return self
 
 class FTEvent(FaultTree):
   def __init__(self, bdd, value):
@@ -39,37 +42,32 @@ class FTEvent(FaultTree):
   def deriv2(self, env, p1, p2):
     return self.value.deriv2(env, p1, p2)
 
-class ExpDist(FaultTree):
-  def __init__(self, bdd, rate, tparam):
-    super().__init__(bdd)
-    self.union_paramset([rate,tparam])
-    self.exponent = -rate * tparam
-    self.tree = bdd.var(self)
+class FTBasicEvent(FaultTree):
+  def __init__(self, bdd, value):
+    self.bdd = bdd
+    self.value = value
 
   def __repr__(self):
-    return 'exp({})'.format(self.exponent)
+    return '{}'.format(self.value)
 
   def __str__(self):
-    return 'exp({})'.format(self.exponent)
+    return '{}'.format(self.value)
+  
+  def get(self):
+    return FTEvent(self.bdd, self.value)
 
-  def _eval(self, env):
-    x = self.exponent.eval(env)
-    return 1 - math.exp(x)
+  def eval(self, env):
+    raise Exception
 
-  def _deriv(self, env, p):
-    x = self.exponent.eval(env)
-    dx = self.exponent.deriv(env, p)
-    return -math.exp(x)*dx
+  def deriv(self, env, p):
+    raise Exception
 
-  def _deriv2(self, env, p1, p2):
-    x = self.exponent.eval(env)
-    dx1 = self.exponent.deriv(env, p1)
-    dx2 = self.exponent.deriv(env, p2)
-    dx12 = self.exponent.deriv2(env, p1, p2)
-    return -math.exp(x)*(dx1*dx2 + dx12)
+  def deriv2(self, env, p1, p2):
+    raise Exception
 
 class FTNotGate(FaultTree):
   def __init__(self, value):
+    value = value.get()
     super().__init__(value.bdd)
     self.union_paramset([value])
     self.value = value
@@ -92,6 +90,7 @@ class FTNotGate(FaultTree):
 
 class FTAndGate(FaultTree):
   def __init__(self, nodes):
+    nodes = [x.get() for x in nodes]
     super().__init__(nodes[0].bdd)
     self.union_paramset(nodes)
     self.value = nodes
@@ -117,6 +116,7 @@ class FTAndGate(FaultTree):
 
 class FTOrGate(FaultTree):
   def __init__(self, nodes):
+    nodes = [x.get() for x in nodes]
     super().__init__(nodes[0].bdd)
     self.union_paramset(nodes)
     self.value = nodes
@@ -142,6 +142,7 @@ class FTOrGate(FaultTree):
 
 class FTKofnGate(FaultTree):
   def __init__(self, k, n, nodes):
+    nodes = [x.get() for x in nodes]
     super().__init__(nodes[0].bdd)
     self.union_paramset(nodes)
     self.k = k

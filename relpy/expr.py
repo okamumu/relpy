@@ -306,3 +306,31 @@ class Exp(Expr):
     dx2 = self.exponent.deriv(env, p2)
     dx12 = self.exponent.deriv2(env, p1, p2)
     return math.exp(x)*(dx1*dx2 + dx12)
+
+class ExpDist(Expr):
+  def __init__(self, rate, tparam):
+    super().__init__()
+    self.union_paramset([rate,tparam])
+    self.exponent = -rate * tparam
+
+  def __repr__(self):
+    return 'exp({})'.format(self.exponent)
+
+  def __str__(self):
+    return 'exp({})'.format(self.exponent)
+
+  def _eval(self, env):
+    x = self.exponent.eval(env)
+    return 1 - math.exp(x)
+
+  def _deriv(self, env, p):
+    x = self.exponent.eval(env)
+    dx = self.exponent.deriv(env, p)
+    return -math.exp(x)*dx
+
+  def _deriv2(self, env, p1, p2):
+    x = self.exponent.eval(env)
+    dx1 = self.exponent.deriv(env, p1)
+    dx2 = self.exponent.deriv(env, p2)
+    dx12 = self.exponent.deriv2(env, p1, p2)
+    return -math.exp(x)*(dx1*dx2 + dx12)

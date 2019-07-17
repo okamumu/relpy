@@ -83,6 +83,7 @@ class Listener(SHARPEListener):
         elif ctx.type == 2: # expr
             label = ctx.children[0].getText()
             x = self.pop()
+            self.params = sorted(self.params)
             self.f.write('def bind_{model}({params}):\n'.format(model=label, params=', '.join(self.params)))
             self.f.write(self.bindent + 'return {}\n'.format(x))
             self.f.write('\n')
@@ -93,6 +94,7 @@ class Listener(SHARPEListener):
         pass
 
     def exitMarkovBlock(self, ctx:SHARPEParser.MarkovBlockContext):
+        self.params = sorted(self.params)
         self.f.write('def ctmc_{model}({params}):\n'.format(model=self.ctmc, params=', '.join(self.params)))
         self.f.write(self.bindent + '{} = relpy.CTMC("{}")\n'.format(self.ctmc, self.ctmc))
         self.f.write(self.markovmodel.getvalue())
@@ -126,9 +128,10 @@ class Listener(SHARPEListener):
         pass
 
     def exitFtreeBlock(self, ctx:SHARPEParser.FtreeBlockContext):
+        self.params = sorted(self.params)
         self.f.write('def ftree_{model}({params}):\n'.format(model=self.ft, params=', '.join(self.params)))
         self.f.write(self.ftreemodel.getvalue())
-        self.f.write(self.bindent + 'return relpy.FTEvent({})\n'.format(self.fttop))
+        self.f.write(self.bindent + 'return {}\n'.format(self.fttop))
         self.f.write('\n')
         self.modeltemp.write('# {model} = ftree_{model}({params})\n'.format(model=self.ft, params=', '.join(self.params)))
         self.params = set()
@@ -141,13 +144,13 @@ class Listener(SHARPEListener):
     def exitFtreeRepeatDecrelation(self, ctx:SHARPEParser.FtreeRepeatDecrelationContext):
         x = ctx.children[1].getText()
         expr = self.pop()
-        self.ftreemodel.write(self.bindent + '{} = relpy.FTEvent({})\n'.format(x, expr))
+        self.ftreemodel.write(self.bindent + '{} = relpy.FTEvent({}.bdd, {})\n'.format(x, self.envstr, expr))
         self.fttop = x
 
     def exitFtreeBasicDecrelation(self, ctx:SHARPEParser.FtreeBasicDecrelationContext):
         x = ctx.children[1].getText()
         expr = self.pop()
-        self.ftreemodel.write(self.bindent + '{} = relpy.FTEvent({})\n'.format(x, expr))
+        self.ftreemodel.write(self.bindent + '{} = relpy.FTBasicEvent({}.bdd, {})\n'.format(x, self.envstr, expr))
         self.fttop = x
 
     def exitExpDistribution(self, ctx:SHARPEParser.ExpDistributionContext):
@@ -167,13 +170,13 @@ class Listener(SHARPEListener):
     def exitFtreeAndDecrelation(self, ctx:SHARPEParser.FtreeAndDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
-        self.ftreemodel.write(self.bindent + '{} = {}\n'.format(x, ' & '.join(node)))
+        self.ftreemodel.write(self.bindent + '{} = relpy.FTAndGate([{}])\n'.format(x, ','.join(node)))
         self.fttop = x
 
     def exitFtreeOrDecrelation(self, ctx:SHARPEParser.FtreeOrDecrelationContext):
         x = ctx.children[1].getText()
         node = [ ctx.children[i].getText() for i in range(2,len(ctx.children))]
-        self.ftreemodel.write(self.bindent + '{} = {}\n'.format(x, ' | '.join(node)))
+        self.ftreemodel.write(self.bindent + '{} = relpy.FTOrGate([{}])\n'.format(x, ','.join(node)))
         self.fttop = x
 
     def exitFtreeKofNDecrelation(self, ctx:SHARPEParser.FtreeKofNDecrelationContext):
@@ -181,7 +184,7 @@ class Listener(SHARPEListener):
         node = [ ctx.children[i].getText() for i in range(6,len(ctx.children))]
         n = self.pop()
         k = self.pop()
-        self.ftreemodel.write(self.bindent + '{f} = relpy.FTKofn({k}.eval({env}), {n}.eval({env}), [{params}])\n'.format(f=x, k=k, n=n, env=self.envstr, params=', '.join(node)))
+        self.ftreemodel.write(self.bindent + '{f} = relpy.FTKofnGate({k}.eval({env}), {n}.eval({env}), [{params}])\n'.format(f=x, k=k, n=n, env=self.envstr, params=','.join(node)))
         self.fttop = x
 
     def exitExpr(self, ctx:SHARPEParser.ExprContext):

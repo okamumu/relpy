@@ -32,10 +32,10 @@ class Value(BDDNode):
         return True
 
     def __str__(self):
-        return str(self.value)
+        return 'BDD({})'.format(id(self))
 
     def __repr__(self):
-        return str(self.value)
+        return 'BDD({})'.format(id(self))
 
 class Variable(BDDNode):
     def __init__(self, bdd, var, low, high):
@@ -48,10 +48,10 @@ class Variable(BDDNode):
         return False
     
     def __str__(self):
-        return '{var} [low: {low}, high: {high}]'.format(var=self.var, low=str(self.low), high=str(self.high))
+        return 'BDD({})'.format(id(self))
 
     def __repr__(self):
-        return str(self)
+        return 'BDD({})'.format(id(self))
 
 class BDD:
     def __init__(self):
@@ -349,10 +349,10 @@ class GraphvizVisitor(Visitor):
         return self.str.getvalue()
 
     def visitT(self, bdd, f):
-        self.str.write('"obj{term}" [shape = square, label = "{value}"];\n'.format(term=id(f), value=f.value))
+        self.str.write('"obj{term}" [shape = square, label = "{value}\\n{id}"];\n'.format(term=id(f), value=f.value, id=f))
     
     def visitN(self, bdd, f):
-        self.str.write('"obj{term}" [shape = circle, label = "{value}"];\n'.format(term=id(f), value=f.var))
+        self.str.write('"obj{term}" [shape = circle, label = "{value}\\n{id}"];\n'.format(term=id(f), value=f.var, id=f))
         self.visit(bdd, f.low)
         self.visit(bdd, f.high)
         self.str.write('"obj{term}" -> "obj{low}" [style = dotted];\n'.format(term=id(f), low=id(f.low)))

@@ -32,6 +32,33 @@ class Parameterizable:
     env[tparam] = t
     return self.deriv2(env, p1, p2)
 
+  def eval(self, env):
+    if self in env.cache:
+      return env.cache[self]
+    value = self._eval(env)
+    env.cache[self] = value
+    return value
+
+  def deriv(self, env, p):
+    if (self,p) in env.cache:
+      return env.cache[(self,p)]
+    if self.has_param(p):
+      value = self._deriv(env, p)
+      env.cache[(self,p)] = value
+      return value
+    else:
+     return 0
+
+  def deriv2(self, env, p1, p2):
+    if (self,p1,p2) in env.cache:
+      return env.cache[(self,p1,p2)]
+    if self.has_param(p1) and self.has_param(p2):
+      value = self._deriv2(env, p1, p2)
+      env.cache[(self,p1,p2)] = value
+      return value
+    else:
+     return 0
+
 class Expr(Parameterizable):
   def __init__(self):
     super().__init__()
@@ -116,22 +143,13 @@ class Neg(Expr):
     return '(-{})'.format(self.value)
 
   def eval(self, env):
-    x = self.value.eval(env)
-    return -x
+    return -self.value.eval(env)
 
   def deriv(self, env, p):
-    if self.has_param(p):
-      dx = self.value.deriv(env, p)
-      return -dx
-    else:
-      return 0
+    return -self.value.deriv(env, p)
 
   def deriv2(self, env, p1, p2):
-    if self.has_param(p1) and self.has_param(p2):
-      dx12 = self.value.deriv2(env, p1, p2)
-      return -dx12
-    else:
-      return 0
+    return -self.value.deriv2(env, p1, p2)
 
 class Add(Expr):
   def __init__(self, left, right):
@@ -146,38 +164,20 @@ class Add(Expr):
   def __str__(self):
     return '({}+{})'.format(self.left, self.right)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     x = self.left.eval(env)
     y = self.right.eval(env)
-    value = x + y
-    env.cache[self] = value
-    return value
+    return x + y
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      dx = self.left.deriv(env, p)
-      dy = self.right.deriv(env, p)
-      value = dx + dy
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    dx = self.left.deriv(env, p)
+    dy = self.right.deriv(env, p)
+    return dx + dy
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      dx12 = self.left.deriv2(env, p1, p2)
-      dy12 = self.right.deriv2(env, p1, p2)
-      value = dx12 + dy12
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
+  def _deriv2(self, env, p1, p2):
+    dx12 = self.left.deriv2(env, p1, p2)
+    dy12 = self.right.deriv2(env, p1, p2)
+    return dx12 + dy12
 
 class Sub(Expr):
   def __init__(self, left, right):
@@ -192,38 +192,20 @@ class Sub(Expr):
   def __str__(self):
     return '({}-{})'.format(self.left, self.right)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     x = self.left.eval(env)
     y = self.right.eval(env)
-    value = x - y
-    env.cache[self] = value
-    return value
+    return x - y
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      dx = self.left.deriv(env, p)
-      dy = self.right.deriv(env, p)
-      value = dx - dy
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    dx = self.left.deriv(env, p)
+    dy = self.right.deriv(env, p)
+    return dx - dy
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      dx12 = self.left.deriv2(env, p1, p2)
-      dy12 = self.right.deriv2(env, p1, p2)
-      value = dx12 - dy12
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
+  def _deriv2(self, env, p1, p2):
+    dx12 = self.left.deriv2(env, p1, p2)
+    dy12 = self.right.deriv2(env, p1, p2)
+    return dx12 - dy12
 
 class Mul(Expr):
   def __init__(self, left, right):
@@ -238,46 +220,28 @@ class Mul(Expr):
   def __str__(self):
     return '{}*{}'.format(self.left, self.right)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     x = self.left.eval(env)
     y = self.right.eval(env)
-    value = x * y
-    env.cache[self] = value
-    return value
+    return x * y
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx = self.left.deriv(env, p)
-      dy = self.right.deriv(env, p)
-      value = dx*y + x*dy
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    x = self.left.eval(env)
+    y = self.right.eval(env)
+    dx = self.left.deriv(env, p)
+    dy = self.right.deriv(env, p)
+    return dx*y + x*dy
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx1 = self.left.deriv(env, p1)
-      dx2 = self.left.deriv(env, p2)
-      dy1 = self.right.deriv(env, p1)
-      dy2 = self.right.deriv(env, p2)
-      dx12 = self.left.deriv2(env, p1, p2)
-      dy12 = self.right.deriv2(env, p1, p2)
-      value = dx12*y + dx1*dy2 + dx2*dy1 + x*dy12
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
+  def _deriv2(self, env, p1, p2):
+    x = self.left.eval(env)
+    y = self.right.eval(env)
+    dx1 = self.left.deriv(env, p1)
+    dx2 = self.left.deriv(env, p2)
+    dy1 = self.right.deriv(env, p1)
+    dy2 = self.right.deriv(env, p2)
+    dx12 = self.left.deriv2(env, p1, p2)
+    dy12 = self.right.deriv2(env, p1, p2)
+    return dx12*y + dx1*dy2 + dx2*dy1 + x*dy12
 
 class Div(Expr):
   def __init__(self, left, right):
@@ -292,46 +256,28 @@ class Div(Expr):
   def __str__(self):
     return '{}/{}'.format(self.left, self.right)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     x = self.left.eval(env)
     y = self.right.eval(env)
-    value = x / y
-    env.cache[self] = value
-    return value
+    return x / y
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx = self.left.deriv(env, p)
-      dy = self.right.deriv(env, p)
-      value = (dx*y-x*dy)/y**2
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    x = self.left.eval(env)
+    y = self.right.eval(env)
+    dx = self.left.deriv(env, p)
+    dy = self.right.deriv(env, p)
+    return (dx*y-x*dy)/y**2
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      x = self.left.eval(env)
-      y = self.right.eval(env)
-      dx1 = self.left.deriv(env, p1)
-      dx2 = self.left.deriv(env, p2)
-      dy1 = self.right.deriv(env, p1)
-      dy2 = self.right.deriv(env, p2)
-      dx12 = self.left.deriv2(env, p1, p2)
-      dy12 = self.right.deriv2(env, p1, p2)
-      value = ((dx12*y + dx1*dy2 - dx2*dy1 - x*dy12) * y**2 - (dx1*y - x*dy1) * 2 * y * dy2) / y**4
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
+  def _deriv2(self, env, p1, p2):
+    x = self.left.eval(env)
+    y = self.right.eval(env)
+    dx1 = self.left.deriv(env, p1)
+    dx2 = self.left.deriv(env, p2)
+    dy1 = self.right.deriv(env, p1)
+    dy2 = self.right.deriv(env, p2)
+    dx12 = self.left.deriv2(env, p1, p2)
+    dy12 = self.right.deriv2(env, p1, p2)
+    return ((dx12*y + dx1*dy2 - dx2*dy1 - x*dy12) * y**2 - (dx1*y - x*dy1) * 2 * y * dy2) / y**4
 
 class Exp(Expr):
   def __init__(self, exponent):
@@ -345,37 +291,18 @@ class Exp(Expr):
   def __str__(self):
     return 'exp({})'.format(self.exponent)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     x = self.exponent.eval(env)
-    value = math.exp(x)
-    env.cache[self] = value
-    return value
+    return math.exp(x)
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      x = self.exponent.eval(env)
-      dx = self.exponent.deriv(env, p)
-      value = math.exp(x)*dx
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    x = self.exponent.eval(env)
+    dx = self.exponent.deriv(env, p)
+    return math.exp(x)*dx
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      x = self.exponent.eval(env)
-      dx1 = self.exponent.deriv(env, p1)
-      dx2 = self.exponent.deriv(env, p2)
-      dx12 = self.exponent.deriv2(env, p1, p2)
-      value = math.exp(x)*(dx1*dx2 + dx12)
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
-
+  def _deriv2(self, env, p1, p2):
+    x = self.exponent.eval(env)
+    dx1 = self.exponent.deriv(env, p1)
+    dx2 = self.exponent.deriv(env, p2)
+    dx12 = self.exponent.deriv2(env, p1, p2)
+    return math.exp(x)*(dx1*dx2 + dx12)

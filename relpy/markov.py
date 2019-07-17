@@ -104,46 +104,28 @@ class CTMCStProb(Expr):
     x0 = np.full(n, 0.0)
     return ctmc_stsen_gs_sparse(Q, x0, b, pis, self.params)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)
     pis = self.solve(Q)
-    value = sum([pis[si[k]] for k in self.states])
-    env.cache[self] = value
-    return value
+    return sum([pis[si[k]] for k in self.states])
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      Q,si,sj = self.markov.getQ(env)
-      dQ,si,sj = self.markov.getQ_deriv(env, p)
-      pis = self.solve(Q)
-      dpis = self.sensolve(Q, pis * dQ, pis)
-      value = sum([dpis[si[k]] for k in self.states])
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    Q,si,sj = self.markov.getQ(env)
+    dQ,si,sj = self.markov.getQ_deriv(env, p)
+    pis = self.solve(Q)
+    dpis = self.sensolve(Q, pis * dQ, pis)
+    return sum([dpis[si[k]] for k in self.states])
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      Q,si,sj = self.markov.getQ(env)
-      dQ1,si,sj = self.markov.getQ_deriv(env, p1)
-      dQ2,si,sj = self.markov.getQ_deriv(env, p2)
-      dQ12,si,sj = self.markov.getQ_deriv2(env, p1, p2)
-      pis = self.solve(Q)
-      s1 = self.sensolve(Q, pis*dQ1, pis)
-      s2 = self.sensolve(Q, pis*dQ2, pis)
-      s12 = self.sensolve(Q, pis*dQ12 + s1*dQ2 + s2*dQ1, pis)
-      value = sum([s12[si[k]] for k in self.states])
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
+  def _deriv2(self, env, p1, p2):
+    Q,si,sj = self.markov.getQ(env)
+    dQ1,si,sj = self.markov.getQ_deriv(env, p1)
+    dQ2,si,sj = self.markov.getQ_deriv(env, p2)
+    dQ12,si,sj = self.markov.getQ_deriv2(env, p1, p2)
+    pis = self.solve(Q)
+    s1 = self.sensolve(Q, pis*dQ1, pis)
+    s2 = self.sensolve(Q, pis*dQ2, pis)
+    s12 = self.sensolve(Q, pis*dQ12 + s1*dQ2 + s2*dQ1, pis)
+    return sum([s12[si[k]] for k in self.states])
 
 class CTMCExrss(Expr):
   def __init__(self, markov):
@@ -174,53 +156,35 @@ class CTMCExrss(Expr):
     x0 = np.full(n, 0.0)
     return ctmc_stsen_gs_sparse(Q, x0, b, pis, self.params)
 
-  def eval(self, env):
-    if self in env.cache:
-      return env.cache[self]
+  def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)
     r,s = self.markov.get_reward(env)
     pis = self.solve(Q)
-    value = np.dot(pis, r)
-    env.cache[self] = value
-    return value
+    return np.dot(pis, r)
 
-  def deriv(self, env, p):
-    if (self,p) in env.cache:
-      return env.cache[(self,p)]
-    if self.has_param(p):
-      Q,si,sj = self.markov.getQ(env)
-      dQ,si,sj = self.markov.getQ_deriv(env, p)
-      r,s = self.markov.get_reward(env)
-      dr,s = self.markov.get_reward_deriv(env, p)
-      pis = self.solve(Q)
-      dpis = self.sensolve(Q, pis*dQ, pis)
-      value = np.dot(dpis, r) + np.dot(pis, dr)
-      env.cache[(self,p)] = value
-      return value
-    else:
-     return 0
+  def _deriv(self, env, p):
+    Q,si,sj = self.markov.getQ(env)
+    dQ,si,sj = self.markov.getQ_deriv(env, p)
+    r,s = self.markov.get_reward(env)
+    dr,s = self.markov.get_reward_deriv(env, p)
+    pis = self.solve(Q)
+    dpis = self.sensolve(Q, pis*dQ, pis)
+    return np.dot(dpis, r) + np.dot(pis, dr)
 
-  def deriv2(self, env, p1, p2):
-    if (self,p1,p2) in env.cache:
-      return env.cache[(self,p1,p2)]
-    if self.has_param(p1) and self.has_param(p2):
-      Q,si,sj = self.markov.getQ(env)
-      dQ1,si,sj = self.markov.getQ_deriv(env, p1)
-      dQ2,si,sj = self.markov.getQ_deriv(env, p2)
-      dQ12,si,sj = self.markov.getQ_deriv2(env, p1, p2)
-      r,s = self.markov.get_reward(env)
-      dr1,s = self.markov.get_reward_deriv(env, p1)
-      dr2,s = self.markov.get_reward_deriv(env, p2)
-      dr12,s = self.markov.get_reward_deriv2(env, p1, p2)
-      pis = self.solve(Q)
-      s1 = self.sensolve(Q, pis*dQ1, pis)
-      s2 = self.sensolve(Q, pis*dQ2, pis)
-      s12 = self.sensolve(Q, pis*dQ12 + s1*dQ2 + s2*dQ1, pis)
-      value = np.dot(s12, r) + np.dot(s1, dr2) + np.dot(s2, dr1) + np.dot(pis, dr12)
-      env.cache[(self,p1,p2)] = value
-      return value
-    else:
-     return 0
+  def _deriv2(self, env, p1, p2):
+    Q,si,sj = self.markov.getQ(env)
+    dQ1,si,sj = self.markov.getQ_deriv(env, p1)
+    dQ2,si,sj = self.markov.getQ_deriv(env, p2)
+    dQ12,si,sj = self.markov.getQ_deriv2(env, p1, p2)
+    r,s = self.markov.get_reward(env)
+    dr1,s = self.markov.get_reward_deriv(env, p1)
+    dr2,s = self.markov.get_reward_deriv(env, p2)
+    dr12,s = self.markov.get_reward_deriv2(env, p1, p2)
+    pis = self.solve(Q)
+    s1 = self.sensolve(Q, pis*dQ1, pis)
+    s2 = self.sensolve(Q, pis*dQ2, pis)
+    s12 = self.sensolve(Q, pis*dQ12 + s1*dQ2 + s2*dQ1, pis)
+    return np.dot(s12, r) + np.dot(s1, dr2) + np.dot(s2, dr1) + np.dot(pis, dr12)
 
 ### markov funcs
 

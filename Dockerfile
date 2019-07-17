@@ -9,4 +9,5 @@ RUN apt-get -y update &&\
 
 USER jovyan
 RUN conda install -c anaconda openblas
+RUN conda install -c anaconda pydotplus
 RUN pip install z3-solver pybind11 antlr4-python3-runtime

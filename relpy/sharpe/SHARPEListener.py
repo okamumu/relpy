@@ -44,6 +44,33 @@ class SHARPEListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by SHARPEParser#includeStatement.
+    def enterIncludeStatement(self, ctx:SHARPEParser.IncludeStatementContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#includeStatement.
+    def exitIncludeStatement(self, ctx:SHARPEParser.IncludeStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by SHARPEParser#filePath.
+    def enterFilePath(self, ctx:SHARPEParser.FilePathContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#filePath.
+    def exitFilePath(self, ctx:SHARPEParser.FilePathContext):
+        pass
+
+
+    # Enter a parse tree produced by SHARPEParser#formatStatement.
+    def enterFormatStatement(self, ctx:SHARPEParser.FormatStatementContext):
+        pass
+
+    # Exit a parse tree produced by SHARPEParser#formatStatement.
+    def exitFormatStatement(self, ctx:SHARPEParser.FormatStatementContext):
+        pass
+
+
     # Enter a parse tree produced by SHARPEParser#bindBlock.
     def enterBindBlock(self, ctx:SHARPEParser.BindBlockContext):
         pass

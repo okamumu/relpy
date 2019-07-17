@@ -1,6 +1,6 @@
 class Env:
-    def __init__(self):
-        self.env = {}
+    def __init__(self, env = {}):
+        self.env = env
         self.cache = {}
     
     def clear_cache(self):

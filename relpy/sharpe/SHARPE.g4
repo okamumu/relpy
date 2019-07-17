@@ -9,6 +9,8 @@ statement
     | markovBlock
     | bindBlock
     | ftreeBlock
+    | includeStatement
+    | formatStatement
     ;
 
 bindStatement
@@ -18,6 +20,18 @@ bindStatement
 bindDecleration returns [int type]
     : ID literal_expr {$type = 1;}
     | ID expr {$type = 2;}
+    ;
+
+includeStatement
+    : 'include' filePath
+    ;
+
+filePath
+    : ID ('/' | ID)*
+    ;
+
+formatStatement
+    : 'format' INT
     ;
 
 bindBlock

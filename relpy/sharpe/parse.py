@@ -1,26 +1,11 @@
-import io
+import os
 import sys
-import re
-from antlr4 import *
-from .SHARPELexer import *
-from .SHARPEParser import *
 from .Listener import *
 
-def parse(fname):
-    with open(fname, 'r') as f:
-        data = io.StringIO()
-        for line in f:
-            if not re.match(r"^\s*\*", line):
-                data.write(re.sub(r'lambda', "plambda", line))
+def parse(filepath, envstr = 'env'):
+    dirname, fname = os.path.split(filepath)
     try:
-        input = InputStream(data.getvalue())
-        lexer = SHARPELexer(input)
-        stream = CommonTokenStream(lexer)
-        parser = SHARPEParser(stream)
-        listener = Listener()
-        parser.addParseListener(listener)
-        parser.prog()
-        return listener.getvalue()
+        return read_sharpe(fpath=filepath, envstr=envstr, header=True, dirname=dirname)
     except ParserException:
         return('Parser error: Please check the sharpe code')
 

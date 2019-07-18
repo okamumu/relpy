@@ -2,7 +2,7 @@ import numpy
 import scipy.sparse
 from relpy.expr import *
 
-class Vector(Parameterizable):
+class Vector(Parameterizable, Evaluable):
   def __init__(self):
     super().__init__()
     self.states = set()
@@ -49,7 +49,7 @@ class Vector(Parameterizable):
       x[s[k]] = v.deriv2(env, p1, p2)
     return x, s
 
-class Matrix(Parameterizable):
+class Matrix(Parameterizable, Evaluable):
   def __init__(self):
     super().__init__()
     self.row_states = set()
@@ -118,20 +118,3 @@ class Matrix(Parameterizable):
     collist = [sj[k[1]] for k in self.elem.keys()]
     datalist = [v.deriv2(env, p1, p2) for v in self.elem.values()]
     return self.make_matrix((m,n), rowlist, collist, datalist), si, sj
-
-class CTMCMatrix(Matrix):
-  def __init__(self):
-    super().__init__()
-
-  def make_matrix(self, shape, rowlist, collist, datalist):
-    collist += rowlist
-    rowlist += rowlist
-    datalist += [-x for x in datalist]
-    rowlist = [rowlist[i] for i in range(len(datalist)) if datalist[i] != 0.0]
-    collist = [collist[i] for i in range(len(datalist)) if datalist[i] != 0.0]
-    datalist = [datalist[i] for i in range(len(datalist)) if datalist[i] != 0.0]
-    row = numpy.array(rowlist, dtype=numpy.int32)
-    col = numpy.array(collist, dtype=numpy.int32)
-    data = numpy.array(datalist, dtype=numpy.float64)
-    return scipy.sparse.coo_matrix((data, (row, col)), shape=shape)
-

@@ -1,7 +1,5 @@
 import functools
 import io
-import pydotplus
-from IPython.display import Image
 
 class BDDNode:
     def __init__(self, bdd):
@@ -18,10 +16,6 @@ class BDDNode:
     
     def todot(self):
         return self.bdd.todot(self)
-
-    def draw(self):
-        g = pydotplus.graph_from_dot_data(self.todot())
-        return Image(g.create_png())
 
 class Value(BDDNode):
     def __init__(self, bdd, value):

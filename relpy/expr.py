@@ -10,7 +10,10 @@ class Parameterizable:
   def union_paramset(self, compo):
     for x in compo:
       self.paramset = self.paramset.union(x.get_paramset())
-  
+
+  def paramlist(self):
+    return sorted(list(self.paramset), key=lambda x:x.label)
+
   def get_paramset(self):
     return self.paramset
   
@@ -19,18 +22,40 @@ class Parameterizable:
   
   def has_param(self, param):
     return param in self.paramset
-  
+
+class Evaluable:
+  def seval(self,env):
+    env.cache.clear()
+    value = self.eval(env)
+    return value
+
+  def sderiv(self, env, p):
+    env.cache.clear()
+    value = self.deriv(env, p)
+    return value
+
+  def sderiv2(self, env, p1, p2):
+    env.cache.clear()
+    value = self.deriv2(env, p1, p2)
+    return value
+
   def teval(self, tparam, t, env):
     env[tparam] = t
-    return self.eval(env)
+    value = self.eval(env)
+    del env[tparam]
+    return value
 
   def tderiv(self, tparam, t, env, p):
     env[tparam] = t
-    return self.deriv(env, p)
+    value = self.deriv(env, p)
+    del env[tparam]
+    return value
 
   def tderiv2(self, tparam, t, env, p1, p2):
     env[tparam] = t
-    return self.deriv2(env, p1, p2)
+    value = self.deriv2(env, p1, p2)
+    del env[tparam]
+    return value
 
   def eval(self, env):
     if self in env.cache:
@@ -52,6 +77,8 @@ class Parameterizable:
   def deriv2(self, env, p1, p2):
     if (self,p1,p2) in env.cache:
       return env.cache[(self,p1,p2)]
+    elif (self,p2,p1) in env.cache:
+      return env.cache[(self,p2,p1)]
     if self.has_param(p1) and self.has_param(p2):
       value = self._deriv2(env, p1, p2)
       env.cache[(self,p1,p2)] = value
@@ -59,7 +86,7 @@ class Parameterizable:
     else:
      return 0
 
-class Expr(Parameterizable):
+class Expr(Parameterizable, Evaluable):
   def __init__(self):
     super().__init__()
 

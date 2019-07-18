@@ -4,6 +4,22 @@ from relpy.matrix import *
 from relpy.nmarkov import *
 import numpy as np
 
+class CTMCMatrix(Matrix):
+  def __init__(self):
+    super().__init__()
+
+  def make_matrix(self, shape, rowlist, collist, datalist):
+    collist += rowlist
+    rowlist += rowlist
+    datalist += [-x for x in datalist]
+    rowlist = [rowlist[i] for i in range(len(datalist)) if datalist[i] != 0.0]
+    collist = [collist[i] for i in range(len(datalist)) if datalist[i] != 0.0]
+    datalist = [datalist[i] for i in range(len(datalist)) if datalist[i] != 0.0]
+    row = numpy.array(rowlist, dtype=numpy.int32)
+    col = numpy.array(collist, dtype=numpy.int32)
+    data = numpy.array(datalist, dtype=numpy.float64)
+    return scipy.sparse.coo_matrix((data, (row, col)), shape=shape)
+
 class CTMC(Parameterizable):
   def __init__(self, label):
     super().__init__()

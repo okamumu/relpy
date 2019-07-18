@@ -3,7 +3,7 @@ import relpy.bdd as bdd
 from relpy.expr import *
 import numpy as np
 
-class FaultTree(Parameterizable):
+class FaultTree(Parameterizable, Evaluable):
   def __init__(self, bdd):
     super().__init__()
     self.bdd = bdd
@@ -104,15 +104,15 @@ class FTAndGate(FaultTree):
 
   def _eval(self, env):
     op = EvalOperator()
-    return op.comp(self, env)
+    return op.eval(self, env)
 
   def _deriv(self, env, p):
-    op = DerivOperator()
-    return op.comp(self, env, p)
+    op = EvalOperator()
+    return op.deriv(self, env, p)
 
   def _deriv2(self, env, p1, p2):
-    op = Deriv2Operator()
-    return op.comp(self, env, p1, p2)
+    op = EvalOperator()
+    return op.deriv2(self, env, p1, p2)
 
 class FTOrGate(FaultTree):
   def __init__(self, nodes):
@@ -130,15 +130,15 @@ class FTOrGate(FaultTree):
 
   def _eval(self, env):
     op = EvalOperator()
-    return op.comp(self, env)
+    return op.eval(self, env)
 
   def _deriv(self, env, p):
-    op = DerivOperator()
-    return op.comp(self, env, p)
+    op = EvalOperator()
+    return op.deriv(self, env, p)
 
   def _deriv2(self, env, p1, p2):
-    op = Deriv2Operator()
-    return op.comp(self, env, p1, p2)
+    op = EvalOperator()
+    return op.deriv2(self, env, p1, p2)
 
 class FTKofnGate(FaultTree):
   def __init__(self, k, n, nodes):
@@ -158,15 +158,15 @@ class FTKofnGate(FaultTree):
 
   def _eval(self, env):
     op = EvalOperator()
-    return op.comp(self, env)
+    return op.eval(self, env)
 
   def _deriv(self, env, p):
-    op = DerivOperator()
-    return op.comp(self, env, p)
+    op = EvalOperator()
+    return op.deriv(self, env, p)
 
   def _deriv2(self, env, p1, p2):
-    op = Deriv2Operator()
-    return op.comp(self, env, p1, p2)
+    op = EvalOperator()
+    return op.deriv2(self, env, p1, p2)
 
 # functions
 
@@ -174,8 +174,14 @@ def ftprob(expr):
   return FTEvent(expr)
 
 class EvalOperator:
-  def comp(self, f, env):
+  def eval(self, f, env):
     return self.apply(f.tree, env)
+
+  def deriv(self, f, env, p):
+    return self.dapply(f.tree, env, p)
+
+  def deriv2(self, f, env, p1, p2):
+    return self.ddapply(f.tree, env, p1, p2)
 
   def apply(self, f, env):
       if f in env.cache:
@@ -186,6 +192,28 @@ class EvalOperator:
           result = self.applyN(f, env)
       env.cache[f] = result
       return result
+
+  def dapply(self, f, env, p):
+    if (f,p) in env.cache:
+        return env.cache[(f,p)]
+    if f.isValue() == True:
+        result = self.dapplyT(f, env, p)
+    else:
+        result = self.dapplyN(f, env, p)
+    env.cache[(f,p)] = result
+    return result
+
+  def ddapply(self, f, env, p1, p2):
+    if (f,p1,p2) in env.cache:
+        return env.cache[(f,p1,p2)]
+    elif (f,p2,p1) in env.cache:
+        return env.cache[(f,p2,p1)]
+    if f.isValue() == True:
+        result = self.ddapplyT(f, env, p1, p2)
+    else:
+        result = self.ddapplyN(f, env, p1, p2)
+    env.cache[(f,p1,p2)] = result
+    return result
 
   def applyT(self, f, env):
     if f.value == True:
@@ -199,20 +227,6 @@ class EvalOperator:
     high = p * self.apply(f.high, env)
     return low + high
 
-class DerivOperator(EvalOperator):
-  def comp(self, f, env, p):
-    return self.dapply(f.tree, env, p)
-
-  def dapply(self, f, env, p):
-    if (f,p) in env.cache:
-        return env.cache[(f,p)]
-    if f.isValue() == True:
-        result = self.dapplyT(f, env, p)
-    else:
-        result = self.dapplyN(f, env, p)
-    env.cache[(f,p)] = result
-    return result
-
   def dapplyT(self, f, env, p):
     return 0.0
 
@@ -222,20 +236,6 @@ class DerivOperator(EvalOperator):
     low = -dx * self.apply(f.low, env) + (1-x) * self.dapply(f.low, env, p)
     high = dx * self.apply(f.high, env) + x * self.dapply(f.high, env, p)
     return low + high
-
-class Deriv2Operator(DerivOperator):
-  def comp(self, f, env, p1, p2):
-    return self.ddapply(f.tree, env, p1, p2)
-
-  def ddapply(self, f, env, p1, p2):
-    if (f,p1,p2) in env.cache:
-        return env.cache[(f,p1,p2)]
-    if f.isValue() == True:
-        result = self.ddapplyT(f, env, p1, p2)
-    else:
-        result = self.ddapplyN(f, env, p1, p2)
-    env.cache[(f,p1,p2)] = result
-    return result
 
   def ddapplyT(self, f, env, p1, p2):
     return 0.0

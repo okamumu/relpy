@@ -97,6 +97,81 @@ namespace nmarkov {
       throw std::runtime_error("The argument x is neither vector nor dense matrix.");
     }
   }
+
+  template <typename T1, typename TR, typename MatT, typename VecT>
+  std::tuple<dpyarray,dpyarray> ctmc_tran(TR, const T1& Q, const dpyarray& x, const dpyarray& cx, const dpyarray& t, Params& params, MatT, VecT) {
+    T1 P = clone(Q, MatT());
+    dpyarray y = clone(x, VecT());
+    dpyarray cy = clone(cx, VecT());
+    const int m = array_size(t);
+    const int s = array_size(x);
+    dpyarray res_x(m*s);
+    dpyarray res_cx(m*s);
+    marlib::ctmc_tran(TR(), P, y, cy, t, res_x, res_cx, params,
+              [](Params& params){
+                throw std::runtime_error(format("Time interval is too large: right = %d (rmax: %d).", params.r, params.rmax));
+                },
+              [](Params){},
+              MatT(), VecT());
+    return std::make_tuple(res_x, res_cx);
+  }
+
+  template <typename T1, typename MatT>
+  std::tuple<dpyarray,dpyarray> ctmc_tran(const T1& Q, const dpyarray& x, const dpyarray& cx, const dpyarray& t, bool trans, Params& params) {
+    int ndim = const_cast<dpyarray&>(x).request().ndim;
+    if (ndim == 1 && trans) {
+      return ctmc_tran(marlib::TRANS(), Q, x, cx, t, params, MatT(), marlib::ArrayT());
+    } else if (ndim == 1 && !trans) {
+      return ctmc_tran(marlib::NOTRANS(), Q, x, cx, t, params, MatT(), marlib::ArrayT());
+    } else if (ndim == 2 && trans) {
+      return ctmc_tran(marlib::TRANS(), Q, x, cx, t, params, MatT(), marlib::DenseMatrixT());
+    } else if (ndim == 2 && !trans) {
+      return ctmc_tran(marlib::NOTRANS(), Q, x, cx, t, params, MatT(), marlib::DenseMatrixT());
+    } else {
+      throw std::runtime_error("The argument x is neither vector nor dense matrix.");
+    }
+  }
+
+  template <typename T1, typename TR, typename MatT, typename VecT, typename VecT2>
+  std::tuple<dpyarray,dpyarray,dpyarray,dpyarray> ctmc_tran_rwd(TR, const T1& Q, const dpyarray& x, const dpyarray& cx, const dpyarray& rwd, const dpyarray& t, Params& params, MatT, VecT, VecT2) {
+    T1 P = clone(Q, MatT());
+    dpyarray y = clone(x, VecT());
+    dpyarray cy = clone(cx, VecT());
+    const int m = array_size(t);
+    const int s = marlib::get_size(x, rwd, VecT(), VecT2());
+    dpyarray res_irwd(m*s);
+    dpyarray res_crwd(m*s);
+    marlib::ctmc_tran_rwd(TR(), P, y, cy, rwd, t, res_irwd, res_crwd, params,
+              [](Params& params){
+                throw std::runtime_error(format("Time interval is too large: right = %d (rmax: %d).", params.r, params.rmax));
+                },
+              [](Params){},
+              MatT(), VecT(), VecT2());
+    return std::make_tuple(y, cy, res_irwd, res_crwd);
+  }
+
+  template <typename T1, typename MatT>
+  std::tuple<dpyarray,dpyarray,dpyarray,dpyarray> ctmc_tran_rwd(const T1& Q, const dpyarray& x, const dpyarray& cx, const dpyarray& rwd, const dpyarray& t, bool trans, Params& params) {
+    int ndim = const_cast<dpyarray&>(x).request().ndim;
+    int ndimr = const_cast<dpyarray&>(rwd).request().ndim;
+    if (ndim == 1 && ndimr == 1 && trans) {
+      return ctmc_tran_rwd(marlib::TRANS(), Q, x, cx, rwd, t, params, MatT(), marlib::ArrayT(), marlib::ArrayT());
+    } else if (ndim == 1 && ndimr == 1 && !trans) {
+      return ctmc_tran_rwd(marlib::NOTRANS(), Q, x, cx, rwd, t, params, MatT(), marlib::ArrayT(), marlib::ArrayT());
+    } else if (ndim == 1 && ndimr == 2 && trans) {
+      return ctmc_tran_rwd(marlib::TRANS(), Q, x, cx, rwd, t, params, MatT(), marlib::ArrayT(), marlib::DenseMatrixT());
+    } else if (ndim == 1 && ndimr == 2 && !trans) {
+      return ctmc_tran_rwd(marlib::NOTRANS(), Q, x, cx, rwd, t, params, MatT(), marlib::ArrayT(), marlib::DenseMatrixT());
+    } else if (ndim == 2 && ndimr == 2 && trans) {
+      return ctmc_tran_rwd(marlib::TRANS(), Q, x, cx, rwd, t, params, MatT(), marlib::DenseMatrixT(), marlib::DenseMatrixT());
+    } else if (ndim == 2 && ndimr == 2 && !trans) {
+      return ctmc_tran_rwd(marlib::NOTRANS(), Q, x, cx, rwd, t, params, MatT(), marlib::DenseMatrixT(), marlib::DenseMatrixT());
+    } else if (ndim == 2 && ndimr == 1) {
+      throw std::runtime_error("The argument rwd should be a matrix when x is a matrix.");
+    } else {
+      throw std::runtime_error("The argument x is neither vector nor dense matrix.");
+    }
+  }
 }
 
 PYBIND11_MODULE(nmarkov, m) {
@@ -233,6 +308,48 @@ PYBIND11_MODULE(nmarkov, m) {
     },
     py::arg("Q"), py::arg("x"), py::arg("cx"), py::arg("t"), py::arg("trans"), py::arg("params"),
     "Compute the matrix exponential with uniformization");
+
+  m.def("ctmc_tran_dense",
+    nmarkov::ctmc_tran<dpyarray,marlib::DenseMatrixT>,
+    py::arg("Q"), py::arg("x"), py::arg("cx"), py::arg("t"), py::arg("trans"), py::arg("params"),
+    "Compute the transient solution with uniformization");
+
+  m.def("ctmc_tran_sparse",
+    [](const py::object& Q, const dpyarray& x, const dpyarray& cx, const dpyarray& t, bool trans, marlib::marlib_params& params) {
+      std::string mattype = py::reinterpret_borrow<py::str>(Q.attr("format"));
+      if (mattype == "csr") {
+        return nmarkov::ctmc_tran<py::object,marlib::CSRMatrixT>(Q, x, cx, t, trans, params);
+      } else if (mattype == "csc") {
+        return nmarkov::ctmc_tran<py::object,marlib::CSCMatrixT>(Q, x, cx, t, trans, params);
+      } else if (mattype == "coo") {
+        return nmarkov::ctmc_tran<py::object,marlib::COOMatrixT>(Q, x, cx, t, trans, params);
+      } else {
+        throw std::runtime_error("Q is either csr, csc and coo.");
+      }
+    },
+    py::arg("Q"), py::arg("x"), py::arg("cx"), py::arg("t"), py::arg("trans"), py::arg("params"),
+    "Compute the transient solution with uniformization");
+
+  m.def("ctmc_tran_rwd_dense",
+    nmarkov::ctmc_tran_rwd<dpyarray,marlib::DenseMatrixT>,
+    py::arg("Q"), py::arg("x"), py::arg("cx"), py::arg("rwd"), py::arg("t"), py::arg("trans"), py::arg("params"),
+    "Compute the transient rewards with uniformization");
+
+  m.def("ctmc_tran_rwd_sparse",
+    [](const py::object& Q, const dpyarray& x, const dpyarray& cx, const dpyarray& rwd, const dpyarray& t, bool trans, marlib::marlib_params& params) {
+      std::string mattype = py::reinterpret_borrow<py::str>(Q.attr("format"));
+      if (mattype == "csr") {
+        return nmarkov::ctmc_tran_rwd<py::object,marlib::CSRMatrixT>(Q, x, cx, rwd, t, trans, params);
+      } else if (mattype == "csc") {
+        return nmarkov::ctmc_tran_rwd<py::object,marlib::CSCMatrixT>(Q, x, cx, rwd, t, trans, params);
+      } else if (mattype == "coo") {
+        return nmarkov::ctmc_tran_rwd<py::object,marlib::COOMatrixT>(Q, x, cx, rwd, t, trans, params);
+      } else {
+        throw std::runtime_error("Q is either csr, csc and coo.");
+      }
+    },
+    py::arg("Q"), py::arg("x"), py::arg("cx"), py::arg("rwd"), py::arg("t"), py::arg("trans"), py::arg("params"),
+    "Compute the transient rewards with uniformization");
 
   // m.def("test",
   //   [](const py::object& X) {

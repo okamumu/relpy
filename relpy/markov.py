@@ -1,7 +1,7 @@
 from relpy.expr import *
 from relpy.ftree import *
 from relpy.matrix import *
-from relpy.nmarkov import *
+import nmarkov as nm
 import numpy as np
 
 class CTMCMatrix(Matrix):
@@ -96,8 +96,6 @@ class CTMCStProb(Expr):
     self.set_paramset(markov.Q.get_paramset())
     self.markov = markov
     self.states = states
-    self.params = Params()
-    self.nmax = 100
 
   def __repr__(self):
     return 'CTMCStProb({}, {})'.format(self.markov, self.states)
@@ -106,19 +104,10 @@ class CTMCStProb(Expr):
     return 'CTMCStProb({}, {})'.format(self.markov, self.states)
 
   def solve(self, Q):
-    Q = Q.tocsc()
-    n = Q.shape[0]
-    if n > self.nmax:
-      x0 = np.full(n, 1/n)
-      return ctmc_st_gs_sparse(Q, x0, self.params)
-    else:
-      return ctmc_st_gth_sparse(Q)
+    return nm.sprob(Q.tocsc())
 
   def sensolve(self, Q, b, pis):
-    Q = Q.tocsc()
-    n = Q.shape[0]
-    x0 = np.full(n, 0.0)
-    return ctmc_stsen_gs_sparse(Q, x0, b, pis, self.params)
+    return nm.ssen(Q.tocsc(), b, pis)
 
   def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)
@@ -148,8 +137,6 @@ class CTMCExrss(Expr):
     super().__init__()
     self.set_paramset(markov.Q.get_paramset().union(markov.reward.get_paramset()))
     self.markov = markov
-    self.params = Params()
-    self.nmax = 100
 
   def __repr__(self):
     return 'CTMCExrss({})'.format(self.markov)
@@ -158,19 +145,10 @@ class CTMCExrss(Expr):
     return 'CTMCExrss({})'.format(self.markov)
 
   def solve(self, Q):
-    Q = Q.tocsc()
-    n = Q.shape[0]
-    if n > self.nmax:
-      x0 = np.full(n, 1/n)
-      return ctmc_st_gs_sparse(Q, x0, self.params)
-    else:
-      return ctmc_st_gth_sparse(Q)
+    return nm.sprob(Q.tocsc())
 
   def sensolve(self, Q, b, pis):
-    Q = Q.tocsc()
-    n = Q.shape[0]
-    x0 = np.full(n, 0.0)
-    return ctmc_stsen_gs_sparse(Q, x0, b, pis, self.params)
+    return nm.ssen(Q.tocsc(), b, pis)
 
   def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)

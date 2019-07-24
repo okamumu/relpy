@@ -15,6 +15,6 @@ setup(
         'numpy',
         'scipy',
         'antlr4-python3-runtime',
-        'nmarkov@git+https://github.com/okamumu/nmarkov.git>=0.8.0'
+        'nmarkov@git+https://github.com/okamumu/nmarkov.git'
     ],
 )

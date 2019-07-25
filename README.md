@@ -2,35 +2,34 @@
 
 Python module for reliability computation
 
-## How to try
+### Install with conda
 
-### Start a container
+The recommendation is to use Anaconda/Miniconda with your own environment for nmarkov.
 
-Use Docker. To start Jupyther in a docker container, execute it on MacOX or Linux:
 ```sh
-sh run.sh
-```
-In the case of WindowsOS, change the script for PowerShell.
-
-### Access the Jupyter
-
-Copy the URL at the last of logs of run.sh like
-```
-http://(aea84267f94b or 127.0.0.1):8888/?token=8fe139193454d65875a8ed95c7bedad45860f85a92b3aa78
+conda create -n relpy python=3.6 jupyter numpy scipy matplotlib pybind11
+conda activate relpy
+conda install -c conda-forge pydotplus graphviz
+pip install git+https://github.com/okamumu/relpy.git
 ```
 
-Access the URL with Chrome etc. by replacing `(aea... or 127.0.0.1)` to `localhost`
+For Jupyter, make the kernel for the environment `relpy`
+```
+conda activate relpy
+ipython kernel install --user --name relpy
+```
 
-### Compile nmarkov
+### Install with pip
 
-- Start the terminal from the Jupyter.
-- Type the following command on the terminal:
 ```sh
-cd work
-sh compile_linux.sh
+pip install git+https://github.com/okamumu/relpy.git
 ```
 
-### Open ipynb (ipython notebook) with Python3
+Requriements:
+- pybind11
+- numpy
+- scipy
 
-enjoy!
+Suggets:
+- pydotplus (it requires graphviz)
 

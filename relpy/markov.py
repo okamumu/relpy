@@ -104,10 +104,10 @@ class CTMCStProb(Expr):
     return 'CTMCStProb({}, {})'.format(self.markov, self.states)
 
   def solve(self, Q):
-    return nm.sprob(Q.tocsc())
+    return nm.sprob(Q.todense())
 
   def sensolve(self, Q, b, pis):
-    return nm.ssen(Q.tocsc(), b, pis)
+    return nm.ssen(Q.todenbse(), b, pis)
 
   def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)

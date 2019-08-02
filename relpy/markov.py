@@ -145,10 +145,10 @@ class CTMCExrss(Expr):
     return 'CTMCExrss({})'.format(self.markov)
 
   def solve(self, Q):
-    return nm.sprob(Q.tocsc())
+    return nm.sprob(Q.todense())
 
   def sensolve(self, Q, b, pis):
-    return nm.ssen(Q.tocsc(), b, pis)
+    return nm.ssen(Q.todense(), b, pis)
 
   def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)

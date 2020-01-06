@@ -107,7 +107,7 @@ class CTMCStProb(Expr):
     return nm.sprob(Q.todense())
 
   def sensolve(self, Q, b, pis):
-    return nm.ssen(Q.todenbse(), b, pis)
+    return nm.ssen(Q.todense(), b, pis)
 
   def _eval(self, env):
     Q,si,sj = self.markov.getQ(env)

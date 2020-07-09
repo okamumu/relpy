@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version__ = '0.8.1'
+__version__ = '0.8.2'
 
 setup(
     name='relpy',
@@ -14,7 +14,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'antlr4-python3-runtime',
+        'antlr4-python3-runtime==4.7.2',
         'nmarkov@git+https://github.com/okamumu/nmarkov.git'
     ],
 )

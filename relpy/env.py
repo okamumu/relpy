@@ -16,6 +16,9 @@ class Env:
         self.clear_cache()
         self.env[key] = value
     
+    def __delitem__(self, key):
+        del self.env[key]
+    
     def __repr__(self):
         return str(self.env)
     
